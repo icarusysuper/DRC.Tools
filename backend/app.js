@@ -1,20 +1,30 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+var express = require('express')
+var path = require('path')
+var cookieParser = require('cookie-parser')
+var logger = require('morgan')
+var multer  = require('multer')
+var upload = multer({
+  dest: 'public/_att/',
+}).single('drcfile')
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
-var app = express();
+var parserHandler = require('./routes/parser')
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+var app = express()
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use(logger('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+app.use(cookieParser())
+app.use(express.static(path.join(__dirname, 'public')))
 
-module.exports = app;
+
+let guidSno = 0
+app.get('/api/guid', (req, res) => {
+  const guid = Date.now() + '_' + (++guidSno)
+  res.send({ guid })
+})
+
+app.post('/api/upload', upload, parserHandler)
+
+module.exports = app
